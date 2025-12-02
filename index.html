@@ -4,12 +4,10 @@
   <meta charset="UTF-8" />
   <title>Signal Ninjas – Smart Parking A1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- MQTT.js from CDN -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
   <style>
     :root {
-      /* dark theme (default) */
       --bg: #020617;
       --bg-elevated: #020617;
       --bg-page: #020617;
@@ -59,9 +57,7 @@
       --log-bg: #0f172a;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -149,9 +145,7 @@
       transform: translateY(-1px);
     }
 
-    .chip-icon {
-      font-size: 13px;
-    }
+    .chip-icon { font-size: 13px; }
 
     .status-bar {
       display: flex;
@@ -229,7 +223,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 1.1fr 1.6fr;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.4fr);
       gap: 20px;
     }
 
@@ -245,6 +239,7 @@
       font-size: 24px;
       font-weight: 600;
       margin-bottom: 2px;
+      word-break: break-word;
     }
 
     .metric-sub {
@@ -257,11 +252,25 @@
     .zone-danger { color: var(--zone-danger); }
     .zone-unknown{ color: var(--zone-unknown); }
 
+    .table-wrapper {
+      margin-top: 4px;
+      max-height: 260px;
+      overflow-y: auto;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15,23,42,0.2);
+    }
+
+    :root[data-theme="light"] .table-wrapper {
+      background: #ffffff;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 4px;
       font-size: 12px;
+      min-width: 520px; /* 超宽时出现横向滚动条 */
     }
 
     th, td {
@@ -339,7 +348,6 @@
 <body>
 <div class="page">
   <div class="card">
-    <!-- 顶部标题 + 控件 -->
     <div class="header">
       <div>
         <h1>
@@ -365,7 +373,6 @@
       </div>
     </div>
 
-    <!-- 状态条 -->
     <div class="status-bar">
       <div id="conn-badge" class="badge">
         <span class="badge-dot"></span>
@@ -386,7 +393,6 @@
       </div>
     </div>
 
-    <!-- 模式切换 -->
     <div class="toggle-row">
       <span>View mode:</span>
       <select id="mode-select">
@@ -395,9 +401,8 @@
       </select>
     </div>
 
-    <!-- 主内容 -->
     <div class="grid">
-      <!-- 左侧：当前车位状态 -->
+      <!-- 左边：状态 + log -->
       <div>
         <div class="metric-label">Current state</div>
         <div id="occ-text" class="metric-value">UNKNOWN</div>
@@ -408,30 +413,34 @@
           <div id="dist-text" class="metric-value">-- cm</div>
           <div id="ts-text" class="metric-sub">Last update: --</div>
         </div>
+
+        <div style="margin-top:18px;">
+          <div class="metric-label">Event log</div>
+          <div class="log" id="log-box">
+            <!-- JS log -->
+          </div>
+        </div>
       </div>
 
-      <!-- 右侧：最近消息 + 日志 -->
+      <!-- 右边：消息表格 -->
       <div>
         <div class="metric-label">Recent messages (A1)</div>
-        <table>
-          <thead>
-          <tr>
-            <th>t (ms)</th>
-            <th>dist (cm)</th>
-            <th>occ</th>
-            <th>zone</th>
-            <th>src</th>
-            <th>auth</th>
-          </tr>
-          </thead>
-          <tbody id="msg-table-body">
-          <!-- JS填充 -->
-          </tbody>
-        </table>
-
-        <div class="metric-label" style="margin-top:10px;">Event log</div>
-        <div class="log" id="log-box">
-          <!-- JS log -->
+        <div class="table-wrapper">
+          <table>
+            <thead>
+            <tr>
+              <th>t (ms)</th>
+              <th>dist (cm)</th>
+              <th>occ</th>
+              <th>zone</th>
+              <th>src</th>
+              <th>auth</th>
+            </tr>
+            </thead>
+            <tbody id="msg-table-body">
+            <!-- JS 填充 -->
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -468,8 +477,7 @@
   });
 
   // ========= MQTT Dashboard 逻辑 =========
-  // 这里要和 ESP32 主节点代码中的 auth_token 一致
-  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";
+  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";   // 和 ESP32 里的 auth_token 保持一致
   const TOPIC = "parking/slot/A1";
 
   const connBadge   = document.getElementById("conn-badge");
@@ -499,8 +507,6 @@
       connBadge.classList.add("badge-red");
     } else if (style === "warn") {
       connBadge.classList.add("badge-yellow");
-    } else {
-      // default
     }
   }
 
@@ -584,7 +590,7 @@
       msgTableBody.appendChild(tr);
     }
 
-    while (msgTableBody.childElementCount > 20) {
+    while (msgTableBody.childElementCount > 50) {
       msgTableBody.removeChild(msgTableBody.lastChild);
     }
   }
@@ -638,7 +644,7 @@
       return;
     }
 
-    const mode = modeSelect.value;  // 'naive' or 'hardened'
+    const mode = modeSelect.value;
     const src  = data.source || "unknown";
     const auth = data.auth;
     let authOk = true;
