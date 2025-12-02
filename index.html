@@ -2,100 +2,206 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Signal Ninjas - Smart Parking Dashboard</title>
+  <title>Signal Ninjas – Smart Parking A1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- MQTT.js from CDN -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
   <style>
+    :root {
+      /* dark theme (default) */
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --bg-page: #020617;
+      --bg-card: #020617;
+      --border-subtle: #1e293b;
+      --border-strong: #4b5563;
+      --fg: #e5e7eb;
+      --fg-muted: #9ca3af;
+      --fg-soft: #6b7280;
+      --accent: #38bdf8;
+      --shadow-strong: 0 20px 40px rgba(0,0,0,0.55);
+
+      --badge-bg: rgba(15,23,42,0.7);
+      --badge-border: #4b5563;
+
+      --zone-safe: #4ade80;
+      --zone-caution: #facc15;
+      --zone-danger: #fb7185;
+      --zone-unknown: #9ca3af;
+
+      --table-row-alt: rgba(15,23,42,0.75);
+      --log-bg: #020617;
+    }
+
+    :root[data-theme="light"] {
+      --bg: #f3f4f6;
+      --bg-elevated: #ffffff;
+      --bg-page: #e5e7eb;
+      --bg-card: #ffffff;
+      --border-subtle: #e5e7eb;
+      --border-strong: #cbd5f5;
+      --fg: #111827;
+      --fg-muted: #6b7280;
+      --fg-soft: #9ca3af;
+      --accent: #2563eb;
+      --shadow-strong: 0 12px 30px rgba(15,23,42,0.18);
+
+      --badge-bg: #f9fafb;
+      --badge-border: #d1d5db;
+
+      --zone-safe: #16a34a;
+      --zone-caution: #ca8a04;
+      --zone-danger: #b91c1c;
+      --zone-unknown: #6b7280;
+
+      --table-row-alt: #f9fafb;
+      --log-bg: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
       margin: 0;
       padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #0f172a 0, var(--bg-page) 55%, var(--bg) 100%);
+      color: var(--fg);
+      min-height: 100vh;
     }
+
     .page {
-      max-width: 900px;
+      max-width: 980px;
       margin: 24px auto 40px;
       padding: 0 16px;
     }
+
     .card {
-      background: #020617;
-      border-radius: 16px;
-      padding: 20px 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-      border: 1px solid #1e293b;
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 20px 22px 18px;
+      box-shadow: var(--shadow-strong);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
     }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
     h1 {
       font-size: 24px;
-      margin: 0 0 8px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
+    h1 span.logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(56,189,248,0.8);
+    }
+
     .subtitle {
       font-size: 13px;
-      color: #9ca3af;
-      margin-bottom: 16px;
+      color: var(--fg-muted);
+      margin-top: 4px;
     }
+
+    .header-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    button,
+    .chip {
+      border-radius: 999px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--fg);
+      font-size: 12px;
+      padding: 5px 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    button {
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .chip-icon {
+      font-size: 13px;
+    }
+
     .status-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 16px;
-      font-size: 14px;
+      margin: 6px 0 16px;
+      font-size: 13px;
     }
+
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 4px 10px;
+      padding: 4px 9px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       gap: 6px;
+      border: 1px solid var(--badge-border);
+      background: var(--badge-bg);
+      color: var(--fg);
     }
+
     .badge-dot {
       width: 8px;
       height: 8px;
       border-radius: 999px;
       background: #22c55e;
     }
-    .badge-red .badge-dot { background: #ef4444; }
-    .badge-yellow .badge-dot { background: #eab308; }
+
     .badge-blue .badge-dot { background: #38bdf8; }
+    .badge-yellow .badge-dot { background: #eab308; }
+    .badge-red .badge-dot { background: #ef4444; }
     .badge-gray .badge-dot { background: #6b7280; }
-    .badge-green {
+
+    .badge-success {
+      border-color: rgba(34,197,94,0.4);
       background: rgba(34,197,94,0.1);
       color: #bbf7d0;
-      border: 1px solid rgba(34,197,94,0.3);
     }
-    .badge-outline {
-      border: 1px solid #4b5563;
-      background: rgba(15,23,42,0.7);
-      color: #e5e7eb;
+
+    :root[data-theme="light"] .badge-success {
+      background: #dcfce7;
+      color: #15803d;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr 1.5fr;
-      gap: 20px;
+
+    .status-badges-tail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
     }
-    .metric-label {
-      font-size: 12px;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-    }
-    .metric-value {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    .metric-sub {
-      font-size: 12px;
-      color: #6b7280;
-    }
-    .zone-safe { color: #4ade80; }
-    .zone-caution { color: #fbbf24; }
-    .zone-danger { color: #f97373; }
-    .zone-invalid { color: #9ca3af; }
 
     .toggle-row {
       display: flex;
@@ -103,103 +209,186 @@
       justify-content: flex-end;
       gap: 8px;
       font-size: 12px;
+      color: var(--fg-muted);
       margin-bottom: 8px;
-      color: #9ca3af;
     }
+
     select {
-      background: #020617;
+      background: var(--bg-card);
       border-radius: 999px;
-      border: 1px solid #4b5563;
-      color: #e5e7eb;
+      border: 1px solid var(--border-strong);
+      color: var(--fg);
       padding: 4px 10px;
       font-size: 12px;
+      outline: none;
     }
+
+    :root[data-theme="light"] select {
+      background: #f9fafb;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.6fr;
+      gap: 20px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--fg-soft);
+    }
+
+    .zone-safe   { color: var(--zone-safe); }
+    .zone-caution{ color: var(--zone-caution); }
+    .zone-danger { color: var(--zone-danger); }
+    .zone-unknown{ color: var(--zone-unknown); }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 6px;
+      margin-top: 4px;
       font-size: 12px;
     }
+
     th, td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #1f2937;
+      padding: 6px 7px;
+      border-bottom: 1px solid var(--border-subtle);
       text-align: left;
       white-space: nowrap;
     }
+
     th {
-      color: #9ca3af;
+      color: var(--fg-muted);
       font-weight: 500;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      background: rgba(15,23,42,0.3);
     }
+
+    :root[data-theme="light"] th {
+      background: #f3f4f6;
+    }
+
     tbody tr:nth-child(even) {
-      background: rgba(15,23,42,0.6);
+      background: var(--table-row-alt);
     }
+
     .log {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 11px;
       max-height: 160px;
       overflow-y: auto;
       padding: 8px;
-      background: #020617;
-      border-radius: 8px;
-      border: 1px solid #1f2937;
+      background: var(--log-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
       margin-top: 8px;
+      color: #e5e7eb;
     }
+
     .log-line {
       margin-bottom: 4px;
+      white-space: pre;
     }
+
     .log-line.blocked { color: #f97373; }
     .log-line.accept { color: #a5b4fc; }
 
     .footer {
       margin-top: 14px;
       font-size: 11px;
-      color: #6b7280;
+      color: var(--fg-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
     }
+
     .footer strong {
-      color: #9ca3af;
+      color: var(--fg-muted);
     }
-    @media (max-width: 768px) {
+
+    @media (max-width: 820px) {
       .grid {
         grid-template-columns: 1fr;
+      }
+      .header {
+        align-items: flex-start;
+      }
+      .header-right {
+        justify-content: flex-start;
       }
     }
   </style>
 </head>
+
 <body>
 <div class="page">
   <div class="card">
-    <h1>Signal Ninjas – Smart Parking A1</h1>
-    <div class="subtitle">
-      Real-time status from ESP32 + HC-SR04 via MQTT (broker: <code>test.mosquitto.org</code>)
+    <!-- 顶部标题 + 控件 -->
+    <div class="header">
+      <div>
+        <h1>
+          <span class="logo-dot"></span>
+          Smart Parking – Slot A1
+        </h1>
+        <div class="subtitle">
+          ESP32 + HC-SR04 → MQTT (<code>test.mosquitto.org</code>) → Web Dashboard
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="chip">
+          <span class="chip-icon">👾</span>
+          Group: Signal Ninjas
+        </div>
+        <div class="chip">
+          Haitao Zhang · Bowen Jiang
+        </div>
+        <button id="theme-toggle" type="button">
+          🌙 Dark
+        </button>
+      </div>
     </div>
 
-    <!-- 顶部状态条 -->
+    <!-- 状态条 -->
     <div class="status-bar">
-      <div id="conn-badge" class="badge badge-outline">
+      <div id="conn-badge" class="badge">
         <span class="badge-dot"></span>
-        <span id="conn-text">Connecting...</span>
+        <span id="conn-text">Connecting…</span>
       </div>
-      <div class="badge badge-outline">
-        <span class="badge-dot" style="background:#38bdf8;"></span>
-        Slot: <strong>A1</strong>
-      </div>
-      <div class="badge badge-outline">
-        Topic: <code>parking/slot/A1</code>
-      </div>
-      <div class="badge badge-outline">
-        <span>Accepted: <span id="count-accept">0</span></span>
-      </div>
-      <div class="badge badge-outline">
-        <span>Blocked: <span id="count-block">0</span></span>
+
+      <div class="status-badges-tail">
+        <div class="badge badge-blue">
+          <span class="badge-dot"></span>
+          Topic: <code>parking/slot/A1</code>
+        </div>
+        <div class="badge">
+          Accepted: <span id="count-accept">0</span>
+        </div>
+        <div class="badge">
+          Blocked: <span id="count-block">0</span>
+        </div>
       </div>
     </div>
 
     <!-- 模式切换 -->
     <div class="toggle-row">
-      Mode:
+      <span>View mode:</span>
       <select id="mode-select">
         <option value="naive">Naive (no filtering)</option>
         <option value="hardened" selected>Hardened (auth token check)</option>
@@ -208,22 +397,22 @@
 
     <!-- 主内容 -->
     <div class="grid">
-      <!-- 左边：当前车位状态 -->
+      <!-- 左侧：当前车位状态 -->
       <div>
-        <div class="metric-label">Current State</div>
+        <div class="metric-label">Current state</div>
         <div id="occ-text" class="metric-value">UNKNOWN</div>
-        <div id="zone-text" class="metric-sub zone-invalid">Zone: unknown</div>
+        <div id="zone-text" class="metric-sub zone-unknown">Zone: unknown</div>
 
-        <div style="margin-top:16px;">
+        <div style="margin-top:18px;">
           <div class="metric-label">Distance</div>
           <div id="dist-text" class="metric-value">-- cm</div>
           <div id="ts-text" class="metric-sub">Last update: --</div>
         </div>
       </div>
 
-      <!-- 右边：最近几条消息 -->
+      <!-- 右侧：最近消息 + 日志 -->
       <div>
-        <div class="metric-label">Recent Messages (A1)</div>
+        <div class="metric-label">Recent messages (A1)</div>
         <table>
           <thead>
           <tr>
@@ -232,57 +421,86 @@
             <th>occ</th>
             <th>zone</th>
             <th>src</th>
-            <th>auth ok?</th>
+            <th>auth</th>
           </tr>
           </thead>
           <tbody id="msg-table-body">
-          <!-- JS 填充 -->
+          <!-- JS填充 -->
           </tbody>
         </table>
 
+        <div class="metric-label" style="margin-top:10px;">Event log</div>
         <div class="log" id="log-box">
-          <!-- 文本日志 -->
+          <!-- JS log -->
         </div>
       </div>
     </div>
 
     <div class="footer">
-      <div><strong>Group:</strong> Signal Ninjas (Haitao Zhang, Bowen Jiang)</div>
-      <div><strong>Security demo:</strong> Rogue ESP32 publishes spoofed messages to the same topic; hardened mode drops them by checking a shared auth token.</div>
+      <div><strong>Security demo:</strong> Rogue ESP32 publishes spoofed MQTT messages; hardened mode rejects them using an auth token and source check.</div>
+      <div><strong>Note:</strong> In a real deployment the verification logic should run on a backend service instead of client-side JavaScript.</div>
     </div>
   </div>
 </div>
 
 <script>
-  // ======= 和主节点 .ino 里保持一致的常量 =======
-  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";  // 必须跟 parking_slot_A1.ino 里的 auth_token 一样
+  // ========= 主题切换 =========
+  const THEME_KEY = "sn_theme";
+  const themeToggleBtn = document.getElementById("theme-toggle");
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      themeToggleBtn.textContent = "🌚 Dark";
+    } else {
+      themeToggleBtn.textContent = "🌙 Light";
+    }
+  }
+
+  const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
+  applyTheme(savedTheme);
+
+  themeToggleBtn.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next);
+  });
+
+  // ========= MQTT Dashboard 逻辑 =========
+  // 这里要和 ESP32 主节点代码中的 auth_token 一致
+  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";
   const TOPIC = "parking/slot/A1";
 
-  // ======= DOM 引用 =======
-  const connBadge = document.getElementById("conn-badge");
-  const connText  = document.getElementById("conn-text");
-  const modeSelect = document.getElementById("mode-select");
-  const occText   = document.getElementById("occ-text");
-  const zoneText  = document.getElementById("zone-text");
-  const distText  = document.getElementById("dist-text");
-  const tsText    = document.getElementById("ts-text");
-  const msgTableBody = document.getElementById("msg-table-body");
-  const logBox    = document.getElementById("log-box");
+  const connBadge   = document.getElementById("conn-badge");
+  const connText    = document.getElementById("conn-text");
+  const modeSelect  = document.getElementById("mode-select");
+  const occText     = document.getElementById("occ-text");
+  const zoneText    = document.getElementById("zone-text");
+  const distText    = document.getElementById("dist-text");
+  const tsText      = document.getElementById("ts-text");
+  const msgTableBody= document.getElementById("msg-table-body");
+  const logBox      = document.getElementById("log-box");
   const countAccept = document.getElementById("count-accept");
   const countBlock  = document.getElementById("count-block");
 
   let acceptedCount = 0;
   let blockedCount  = 0;
 
-  function setConnStatus(ok, text) {
-    connText.textContent = text;
-    connBadge.classList.remove("badge-green", "badge-red", "badge-yellow", "badge-outline");
-    if (ok === true) {
-      connBadge.classList.add("badge", "badge-green");
-    } else if (ok === false) {
-      connBadge.classList.add("badge", "badge-red");
+  function setConnStatus(stateText, style) {
+    connText.textContent = stateText;
+    connBadge.className = "badge";
+    const dot = connBadge.querySelector(".badge-dot");
+    dot.className = "badge-dot";
+
+    if (style === "ok") {
+      connBadge.classList.add("badge-success");
+    } else if (style === "error") {
+      connBadge.classList.add("badge-red");
+    } else if (style === "warn") {
+      connBadge.classList.add("badge-yellow");
     } else {
-      connBadge.classList.add("badge", "badge-outline");
+      // default
     }
   }
 
@@ -291,7 +509,7 @@
     if (z === "safe") return "zone-safe";
     if (z === "caution") return "zone-caution";
     if (z === "danger") return "zone-danger";
-    return "zone-invalid";
+    return "zone-unknown";
   }
 
   function appendLog(text, type) {
@@ -303,33 +521,26 @@
   }
 
   function updateStateView(data, isAccepted) {
-    // Occupied
-    const occ = data.occupied;
-    if (occ === true) {
+    if (data.occupied === true) {
       occText.textContent = "OCCUPIED";
-    } else if (occ === false) {
+    } else if (data.occupied === false) {
       occText.textContent = "EMPTY";
     } else {
       occText.textContent = "UNKNOWN";
     }
 
-    // Zone
     const zone = data.zone || "unknown";
     zoneText.textContent = "Zone: " + zone;
     zoneText.className = "metric-sub " + zoneClass(zone);
 
-    // Distance
-    const d = data.dist_cm;
-    if (typeof d === "number") {
-      distText.textContent = d.toFixed(1) + " cm";
+    if (typeof data.dist_cm === "number") {
+      distText.textContent = data.dist_cm.toFixed(1) + " cm";
     } else {
       distText.textContent = "-- cm";
     }
 
-    // Timestamp
-    const ts = data.ts;
-    if (typeof ts === "number") {
-      tsText.textContent = "Last update (local ms): " + ts;
+    if (typeof data.ts === "number") {
+      tsText.textContent = "Last update (local ms): " + data.ts;
     } else {
       tsText.textContent = "Last update: --";
     }
@@ -343,47 +554,45 @@
   function appendTableRow(data, authOk, blockedReason) {
     const tr = document.createElement("tr");
 
-    function td(text) {
-      const el = document.createElement("td");
-      el.textContent = text;
-      return el;
+    function cell(text) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      return td;
     }
 
-    const ts = (typeof data.ts === "number") ? data.ts : "";
-    const dist = (typeof data.dist_cm === "number") ? data.dist_cm.toFixed(1) : "";
+    const ts  = (typeof data.ts === "number") ? data.ts : "";
+    const dst = (typeof data.dist_cm === "number") ? data.dist_cm.toFixed(1) : "";
     const occ = (data.occupied === true) ? "true" : (data.occupied === false ? "false" : "");
-    const zone = data.zone || "";
+    const zone= data.zone || "";
     const src = data.source || "";
-    const authText = authOk ? "OK" : (blockedReason ? "BLOCKED" : "");
+    const authTxt = authOk ? "OK" : (blockedReason ? "BLOCKED" : "");
 
-    tr.appendChild(td(ts));
-    tr.appendChild(td(dist));
-    tr.appendChild(td(occ));
-    tr.appendChild(td(zone));
-    tr.appendChild(td(src));
-    tr.appendChild(td(authText));
+    tr.appendChild(cell(ts));
+    tr.appendChild(cell(dst));
+    tr.appendChild(cell(occ));
+    tr.appendChild(cell(zone));
+    tr.appendChild(cell(src));
+    tr.appendChild(cell(authTxt));
 
     if (!authOk && blockedReason) {
       tr.style.color = "#f97373";
     }
 
-    // 新消息插到最上面
     if (msgTableBody.firstChild) {
       msgTableBody.insertBefore(tr, msgTableBody.firstChild);
     } else {
       msgTableBody.appendChild(tr);
     }
 
-    // 限制表格最多 20 行
     while (msgTableBody.childElementCount > 20) {
       msgTableBody.removeChild(msgTableBody.lastChild);
     }
   }
 
-  // ========= 连接 MQTT over WebSocket =========
-  setConnStatus(null, "Connecting to test.mosquitto.org ...");
+  // ===== 连接 MQTT over WebSocket =====
+  setConnStatus("Connecting to test.mosquitto.org …", "warn");
 
-  const clientId = "web_dashboard_" + Math.random().toString(16).substr(2, 8);
+  const clientId = "web_dashboard_" + Math.random().toString(16).slice(2, 10);
 
   const client = mqtt.connect("wss://test.mosquitto.org:8081", {
     clean: true,
@@ -392,10 +601,11 @@
   });
 
   client.on("connect", () => {
-    setConnStatus(true, "Connected as " + clientId);
+    setConnStatus("Connected as " + clientId, "ok");
     appendLog("[INFO] Connected, subscribing " + TOPIC, "");
     client.subscribe(TOPIC, (err) => {
       if (err) {
+        setConnStatus("Subscribe error", "error");
         appendLog("[ERROR] Subscribe failed: " + err, "blocked");
       } else {
         appendLog("[INFO] Subscribed to " + TOPIC, "");
@@ -404,32 +614,32 @@
   });
 
   client.on("reconnect", () => {
-    setConnStatus(null, "Reconnecting...");
-    appendLog("[INFO] Reconnecting ...", "");
+    setConnStatus("Reconnecting …", "warn");
+    appendLog("[INFO] Reconnecting …", "");
   });
 
   client.on("error", (err) => {
-    setConnStatus(false, "Error");
+    setConnStatus("Error", "error");
     appendLog("[ERROR] " + err, "blocked");
   });
 
   client.on("close", () => {
-    setConnStatus(false, "Disconnected");
+    setConnStatus("Disconnected", "error");
     appendLog("[INFO] Connection closed", "");
   });
 
   client.on("message", (topic, message) => {
-    let text = message.toString();
+    const raw = message.toString();
     let data;
     try {
-      data = JSON.parse(text);
+      data = JSON.parse(raw);
     } catch (e) {
-      appendLog("[ERROR] Bad JSON: " + text, "blocked");
+      appendLog("[ERROR] Bad JSON: " + raw, "blocked");
       return;
     }
 
-    const mode = modeSelect.value;   // "naive" 或 "hardened"
-    const src = data.source || "unknown";
+    const mode = modeSelect.value;  // 'naive' or 'hardened'
+    const src  = data.source || "unknown";
     const auth = data.auth;
     let authOk = true;
     let blockedReason = "";
@@ -447,12 +657,12 @@
     if (!authOk) {
       blockedCount++;
       countBlock.textContent = blockedCount;
-      appendLog("[BLOCKED] " + blockedReason + " payload=" + text, "blocked");
+      appendLog("[BLOCKED] " + blockedReason + " payload=" + raw, "blocked");
       appendTableRow(data, false, blockedReason);
       return;
     }
 
-    appendLog("[ACCEPT] " + text, "accept");
+    appendLog("[ACCEPT] " + raw, "accept");
     appendTableRow(data, true, "");
     updateStateView(data, true);
   });
