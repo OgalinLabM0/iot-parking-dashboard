@@ -7,7 +7,7 @@
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <style>
-    /* ========== 1. 全局配置 ========== */
+    /* ========== 1. 全局与PC样式 (保持专业感) ========== */
     :root {
       --bg: #020617; --bg-card: #0f172a; --fg: #e2e8f0; --fg-muted: #94a3b8; 
       --accent: #38bdf8; --border-subtle: #1e293b;
@@ -23,120 +23,161 @@
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     
-    html, body {
-      margin: 0; padding: 0; width: 100%; max-width: 100%;
-      overflow-x: hidden; /* ⛔️ 全局禁止横向滚动，这是第一道防线 */
-    }
-
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      margin: 0; padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; 
       background: var(--bg); color: var(--fg); min-height: 100vh; padding-bottom: 40px; 
+      overflow-x: hidden; 
     }
     
-    .page { 
-      width: 100%; max-width: 980px; margin: 24px auto; padding: 0 20px; 
-    }
+    .page { width: 100%; max-width: 980px; margin: 24px auto; padding: 0 20px; }
     
     .card {
       background: var(--bg-card); border-radius: 20px; padding: 24px;
       border: 1px solid var(--border-subtle); 
       box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3);
-      width: 100%;
     }
 
-    /* ========== 2. PC端布局 ========== */
+    /* 头部 & 状态栏 */
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     h1 { font-size: 24px; margin: 0; display: flex; align-items: center; gap: 10px; font-weight: 700; }
     h1 span.logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 15px var(--accent); }
     .subtitle { font-size: 13px; color: var(--fg-muted); margin-top: 4px; }
-    
     .header-right { display: flex; gap: 8px; align-items: center; }
+    
     .chip, button { 
       font-size: 12px; padding: 6px 12px; border-radius: 20px; 
       background: var(--badge-bg); border: 1px solid var(--badge-border); 
       color: var(--fg); display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s;
     }
-    button:hover { border-color: var(--accent); color: var(--accent); }
-
     .status-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; font-size: 12px; }
     .badge { padding: 4px 10px; border-radius: 8px; background: var(--badge-bg); border: 1px solid var(--badge-border); display: inline-flex; align-items: center; gap: 6px; color: var(--fg-muted); }
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
     .badge-success { background: rgba(34,197,94,0.1); color: #4ade80; border-color: rgba(34,197,94,0.2); }
     :root[data-theme="light"] .badge-success { background: #dcfce7; color: #166534; }
 
-    /* 下拉框 */
+    /* 下拉框 (PC) */
     .toggle-row { display: flex; justify-content: flex-end; margin-bottom: 12px; gap: 8px; align-items: center; font-size: 12px; color: var(--fg-muted); }
     select {
-      appearance: none; -webkit-appearance: none; 
-      background-color: var(--badge-bg); border: 1px solid var(--badge-border);
+      appearance: none; background-color: var(--badge-bg); border: 1px solid var(--badge-border);
       color: var(--accent); padding: 6px 32px 6px 12px; border-radius: 20px;
       font-size: 12px; font-weight: 600; cursor: pointer; outline: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
       background-repeat: no-repeat; background-position: right 8px center; background-size: 14px;
     }
-    :root[data-theme="light"] select {
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    }
-
-    /* 网格 */
-    .grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 24px; align-items: start; }
     
-    .metric-label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 700; }
+    /* PC端 表格布局 */
+    .grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 24px; align-items: start; }
     .metric-value { font-size: 32px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .metric-label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
     .metric-sub { font-size: 12px; color: var(--fg-muted); }
-    .zone-safe { color: var(--zone-safe); } .zone-danger { color: var(--zone-danger); } .zone-caution { color: var(--zone-caution); } .zone-unknown { color: var(--zone-unknown); }
-
-    /* 表格 (PC) */
+    .zone-safe { color: var(--zone-safe); } .zone-danger { color: var(--zone-danger); } .zone-caution { color: var(--zone-caution); }
+    
     .table-wrapper { overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: 12px; max-height: 350px; background: var(--bg-card); }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-subtle); white-space: nowrap; }
     th { background: rgba(0,0,0,0.2); position: sticky; top: 0; backdrop-filter: blur(4px); color: var(--fg-muted); font-weight: 600; }
     
-    .log { margin-top: 16px; height: 160px; overflow-y: auto; background: var(--log-bg); padding: 12px; border-radius: 10px; font-family: "SF Mono", monospace; font-size: 11px; border: 1px solid var(--border-subtle); }
-    .log-line { margin-bottom: 4px; word-break: break-all; line-height: 1.4; }
+    .log { margin-top: 16px; height: 160px; overflow-y: auto; background: var(--log-bg); padding: 12px; border-radius: 10px; font-family: monospace; font-size: 11px; border: 1px solid var(--border-subtle); }
+    .log-line { margin-bottom: 4px; word-break: break-all; }
     .log-line.blocked { color: #f87171; border-left: 2px solid #f87171; padding-left: 8px; } .log-line.accept { color: #818cf8; }
-
     .footer { margin-top: 24px; font-size: 11px; color: var(--fg-muted); opacity: 0.6; line-height: 1.5; }
 
-    /* =========================================
-       📱 手机端终极强制适配 (Mobile Force Fix)
-       ========================================= */
+    /* ============================================================
+       🚀 手机端特化：将表格彻底重构为“卡片流” (Mobile Card View)
+       ============================================================ */
     @media (max-width: 600px) {
-      /* 1. 强制页面容器不溢出 */
-      .page { margin: 12px auto; padding: 0 12px; width: 100%; overflow: hidden; }
-      .card { padding: 20px 16px; width: 100%; overflow: hidden; }
-
-      .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page { padding: 0 12px; margin: 12px auto; }
+      .card { padding: 20px 16px; border: none; background: transparent; box-shadow: none; padding: 0; }
+      
+      /* 头部 & 状态 */
+      .header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
       .header-right { width: 100%; justify-content: space-between; }
       h1 { font-size: 20px; } .subtitle { display: none; }
-      .status-bar { gap: 6px; margin-bottom: 16px; } .badge { font-size: 10px; padding: 4px 8px; }
+      .status-bar { gap: 8px; margin-bottom: 20px; }
+      .badge { font-size: 11px; padding: 6px 10px; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; }
 
-      /* 2. 放弃 Grid，改用 Block 布局避免宽度计算 bug */
+      /* 下拉框变成大按钮 */
+      .toggle-row { background: #1e293b; padding: 4px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 24px; }
+      .toggle-row span { display: none; }
+      select { width: 100%; height: 40px; border: none; text-align-last: center; background-position: 95% center; font-size: 14px; background-color: transparent; }
+
+      /* 网格变单列 */
       .grid { display: block; }
-      /* 给两个板块之间加间距 */
-      .grid > div:first-child { margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 20px; }
+      
+      /* 1. 当前状态面板 (美化的大卡片) */
+      .grid > div:first-child { 
+        background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; 
+        padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); 
+      }
+      .metric-value { font-size: 40px; } /* 数字巨大化 */
 
-      /* 3. ⛔️ 核心修复：强制表格容器宽度，绝不超出屏幕 */
-      .table-wrapper {
-        display: block;
-        width: 100%; 
-        /* 强制最大宽度 = 屏幕宽 - (页面左右padding + 卡片左右padding) */
-        max-width: calc(100vw - 24px - 32px); 
-        overflow-x: scroll; /* 强制显示滚动行为 */
-        -webkit-overflow-scrolling: touch;
+      /* 2. 彻底消灭表格，改为卡片列表 */
+      .table-wrapper { border: none; background: transparent; max-height: none; overflow: visible; }
+      
+      /* 强制将 table 拆解为 block */
+      table, thead, tbody, th, td, tr { display: block; width: 100%; }
+      
+      /* 隐藏表头 */
+      thead { display: none; }
+      
+      /* 每一行变成一张卡片 */
+      tbody tr {
+        background: #1e293b; /* 深色卡片 */
+        border: 1px solid #334155;
+        border-radius: 12px;
+        margin-bottom: 12px; /* 卡片间距 */
+        padding: 12px 16px;
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 两列布局 */
+        gap: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       }
 
-      /* 4. 表格保持最小宽度，触发滚动 */
-      table { min-width: 420px; width: auto; }
-      th, td { padding: 8px 10px; font-size: 11px; }
+      /* 每一个单元格的样式 */
+      td {
+        padding: 0; border: none; 
+        display: flex; flex-direction: column; 
+        font-size: 13px; color: #e2e8f0;
+        min-height: auto;
+      }
 
-      /* 下拉框优化 */
-      .toggle-row { justify-content: space-between; background: var(--badge-bg); padding: 4px; border-radius: 24px; border: 1px solid var(--border-subtle); margin-bottom: 16px; }
-      .toggle-row span { display: none; }
-      select { width: 100%; text-align-last: center; height: 36px; background-position: 95% center; border: none; }
+      /* --- 利用 CSS 给单元格加标签 (伪元素) --- */
       
-      .metric-value { font-size: 36px; }
-      .log { height: 120px; }
+      /* Time (左上) */
+      td:nth-of-type(1) { grid-column: 1 / span 2; font-size: 11px; color: #94a3b8; margin-bottom: 4px; flex-direction: row; justify-content: space-between; }
+      td:nth-of-type(1)::before { content: "TIME (MS)"; }
+
+      /* Distance (左下 - 核心数据) */
+      td:nth-of-type(2) { grid-column: 1; font-size: 16px; font-weight: 700; color: #38bdf8; }
+      td:nth-of-type(2)::after { content: "Distance"; font-size: 10px; color: #64748b; font-weight: 400; text-transform: uppercase; margin-top: 2px; }
+
+      /* Occupied (右下) */
+      td:nth-of-type(3) { grid-column: 2; text-align: right; align-items: flex-end; font-size: 16px; font-weight: 700; }
+      td:nth-of-type(3)::after { content: "Occupied"; font-size: 10px; color: #64748b; font-weight: 400; text-transform: uppercase; margin-top: 2px; }
+
+      /* Zone (隐藏或次要显示) */
+      td:nth-of-type(4) { display: none; } 
+
+      /* Source (在 Time 右边) */
+      td:nth-of-type(5) { display: none; } /* 空间不够，先隐藏 */
+
+      /* Auth (状态条) */
+      td:nth-of-type(6) { 
+        grid-column: 1 / span 2; 
+        margin-top: 8px; padding-top: 8px; border-top: 1px dashed #334155;
+        flex-direction: row; justify-content: space-between; align-items: center;
+        font-weight: 600;
+      }
+      td:nth-of-type(6)::before { content: "AUTH STATUS:"; font-size: 10px; color: #94a3b8; font-weight: 400; }
+      
+      /* 针对被拦截的行，整张卡片变红 */
+      tr[style*="color: rgb(249, 115, 115)"] { border-color: #7f1d1d; background: #450a0a; }
+      tr[style*="color: rgb(249, 115, 115)"] td { color: #fca5a5 !important; }
+
+      .log { display: none; } /* 手机上隐藏复杂的 log，只看漂亮的卡片 */
+      .footer { margin-bottom: 60px; }
     }
   </style>
 </head>
@@ -473,6 +514,7 @@
 </script>
 </body>
 </html>
+
 
 
 
