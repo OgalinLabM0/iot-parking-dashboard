@@ -101,7 +101,7 @@
     /* ========== 核心数据展示 (颜色逻辑) ========== */
     .grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 24px; align-items: start; }
     
-    .metric-value { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; line-height: 1; }
+    .metric-value { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; line-height: 1; transition: color 0.3s ease; }
     .metric-label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
     
     /* Zone 标签样式 */
@@ -110,6 +110,10 @@
       display: inline-block; padding: 4px 10px; border-radius: 6px;
       text-transform: capitalize;
     }
+    
+    /* 核心状态变色 */
+    .state-occupied { color: var(--color-danger); text-shadow: 0 0 30px rgba(255, 69, 58, 0.3); }
+    .state-empty { color: var(--color-safe); text-shadow: 0 0 30px rgba(48, 209, 88, 0.3); }
     
     /* 颜色定义 - 作用于 Zone 和文字 */
     .zone-safe { color: var(--color-safe) !important; background: rgba(52, 199, 89, 0.15); }
@@ -134,22 +138,17 @@
     @media (max-width: 600px) {
       .page { padding: 0 16px; margin: 16px auto; }
       
-      /* 移除大卡片边框，沉浸式 */
       .card { padding: 0; border: none; background: transparent; box-shadow: none; }
       
-      /* 1. 头部修复：找回切换按钮 */
       .header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 20px; }
       .header div:first-child { flex: 1; }
-      .subtitle, .header-right .chip { display: none; } /* 隐藏副标题和小组名 */
+      .subtitle, .header-right .chip { display: none; }
       
-      /* 确保按钮可见 */
       .header-right { display: flex; width: auto; }
       .header-right button { font-size: 12px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border-subtle); }
 
-      /* 状态栏 */
       .status-bar { gap: 8px; margin-bottom: 20px; }
 
-      /* 下拉框按钮化 */
       .toggle-row { 
         background: var(--bg-card); padding: 4px; border-radius: 12px; 
         margin-bottom: 24px; border: 1px solid var(--border-subtle);
@@ -157,12 +156,9 @@
       .toggle-row span { display: none; }
       select { width: 100%; height: 40px; background-color: transparent; text-align-last: center; background-position: 95% center; }
 
-      /* 单栏布局 */
       .grid { display: block; }
       
-      /* 隐藏 Log */
       .grid > div:first-child > div:has(#log-box) { display: none !important; }
-      /* 兼容旧浏览器隐藏 Log */
       .grid > div:first-child > div:nth-child(3) { display: none !important; }
 
       /* 2. 核心状态卡片 (上部) */
@@ -179,7 +175,6 @@
       /* 数字巨大化 */
       .metric-value { font-size: 48px; margin-bottom: 12px; }
       
-      /* Zone 标签：非常醒目 */
       .metric-sub { 
         font-size: 15px; padding: 6px 16px; border-radius: 100px; 
         display: inline-block; font-weight: 700; letter-spacing: 0.5px;
@@ -190,49 +185,32 @@
       table, thead, tbody, th, td, tr { display: block; width: 100%; }
       thead { display: none; }
       
-      /* 数据卡片 */
       tbody tr {
-        background: var(--bg-card); 
-        border-radius: 16px;
-        margin-bottom: 12px; 
-        padding: 16px 20px;
-        box-shadow: var(--shadow-card);
-        position: relative;
+        background: var(--bg-card); border-radius: 16px; margin-bottom: 12px; padding: 16px 20px;
+        box-shadow: var(--shadow-card); position: relative;
         display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
         border: 1px solid var(--border-subtle);
       }
 
       td { padding: 0; border: none; font-size: 15px; color: var(--fg); min-height: auto; width: auto; }
 
-      /* Time */
       td:nth-of-type(1) { width: 100%; font-size: 12px; color: var(--fg-muted); margin-bottom: 12px; opacity: 0.8; }
-      
-      /* Distance */
       td:nth-of-type(2) { font-size: 20px; font-weight: 700; color: var(--accent); }
       td:nth-of-type(2)::after { content: " dist"; font-size: 13px; font-weight: 400; color: var(--fg-muted); }
 
-      /* Occupied - 会自动跟随 JS 变字，但这里我们无法变色，所以依赖下面的 Danger 样式 */
       td:nth-of-type(3) { font-weight: 600; }
-      
       td:nth-of-type(4), td:nth-of-type(5) { display: none; }
 
-      /* Auth Status 标签 */
       td:nth-of-type(6) { 
         font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; 
         background: var(--bg); color: var(--fg-muted);
       }
 
-      /* ⚠️ 红色警告卡片 (被拦截) */
       tr[style*="color: rgb(249, 115, 115)"] { 
-        background: rgba(255, 59, 48, 0.08); 
-        border: 1px solid rgba(255, 59, 48, 0.3);
+        background: rgba(255, 59, 48, 0.08); border: 1px solid rgba(255, 59, 48, 0.3);
       }
-      tr[style*="color: rgb(249, 115, 115)"] td {
-        color: var(--color-danger) !important;
-      }
-      tr[style*="color: rgb(249, 115, 115)"] td:nth-of-type(6) {
-        background: var(--color-danger); color: #fff !important;
-      }
+      tr[style*="color: rgb(249, 115, 115)"] td { color: var(--color-danger) !important; }
+      tr[style*="color: rgb(249, 115, 115)"] td:nth-of-type(6) { background: var(--color-danger); color: #fff !important; }
 
       .footer { text-align: center; margin-bottom: 80px; }
     }
@@ -420,31 +398,42 @@
     logBox.scrollTop = logBox.scrollHeight;
   }
 
-  function updateStateView(data, isAccepted) {
+function updateStateView(data, isAccepted) {
+    // 1. 设置 OCCUPIED / EMPTY 文字和颜色
     if (data.occupied === true) {
       occText.textContent = "OCCUPIED";
+      // 变红
+      occText.className = "metric-value state-occupied";
     } else if (data.occupied === false) {
       occText.textContent = "EMPTY";
+      // 变绿
+      occText.className = "metric-value state-empty";
     } else {
       occText.textContent = "UNKNOWN";
+      occText.className = "metric-value";
     }
 
+    // 2. 设置 Zone 标签颜色
     const zone = data.zone || "unknown";
     zoneText.textContent = "Zone: " + zone;
+    // 重置并添加对应的颜色类
     zoneText.className = "metric-sub " + zoneClass(zone);
 
+    // 3. 设置距离
     if (typeof data.dist_cm === "number") {
       distText.textContent = data.dist_cm.toFixed(1) + " cm";
     } else {
       distText.textContent = "-- cm";
     }
 
+    // 4. 设置时间
     if (typeof data.ts === "number") {
       tsText.textContent = "Last update (local ms): " + data.ts;
     } else {
       tsText.textContent = "Last update: --";
     }
 
+    // 5. 更新接受计数
     if (isAccepted) {
       acceptedCount++;
       countAccept.textContent = acceptedCount;
@@ -571,6 +560,7 @@
 </script>
 </body>
 </html>
+
 
 
 
