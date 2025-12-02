@@ -225,6 +225,14 @@
       display: grid;
       grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.4fr);
       gap: 20px;
+      align-items: stretch; /* 让左右两列同高 */
+    }
+
+    .col-left,
+    .col-right {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .metric-label {
@@ -252,8 +260,24 @@
     .zone-danger { color: var(--zone-danger); }
     .zone-unknown{ color: var(--zone-unknown); }
 
+    .block-top {
+      margin-bottom: 18px;
+    }
+
+    .log-shell {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .log-shell .metric-label {
+      margin-bottom: 6px;
+    }
+
     .table-wrapper {
-      margin-top: 4px;
+      flex: 1;
+      min-height: 0;
       max-height: 260px;
       overflow-y: auto;
       overflow-x: auto;
@@ -270,7 +294,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      min-width: 520px; /* 超宽时出现横向滚动条 */
+      min-width: 520px;
     }
 
     th, td {
@@ -300,13 +324,13 @@
     .log {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 11px;
-      max-height: 160px;
+      flex: 1;
+      min-height: 0;
       overflow-y: auto;
       padding: 8px;
       background: var(--log-bg);
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
-      margin-top: 8px;
       color: #e5e7eb;
     }
 
@@ -402,43 +426,45 @@
     </div>
 
     <div class="grid">
-      <!-- 左边：状态 + log -->
-      <div>
-        <div class="metric-label">Current state</div>
-        <div id="occ-text" class="metric-value">UNKNOWN</div>
-        <div id="zone-text" class="metric-sub zone-unknown">Zone: unknown</div>
+      <!-- 左列：状态 + log -->
+      <div class="col-left">
+        <div class="block-top">
+          <div class="metric-label">Current state</div>
+          <div id="occ-text" class="metric-value">UNKNOWN</div>
+          <div id="zone-text" class="metric-sub zone-unknown">Zone: unknown</div>
+        </div>
 
-        <div style="margin-top:18px;">
+        <div class="block-top">
           <div class="metric-label">Distance</div>
           <div id="dist-text" class="metric-value">-- cm</div>
           <div id="ts-text" class="metric-sub">Last update: --</div>
         </div>
 
-        <div style="margin-top:18px;">
+        <div class="log-shell">
           <div class="metric-label">Event log</div>
           <div class="log" id="log-box">
-            <!-- JS log -->
+            <!-- log lines -->
           </div>
         </div>
       </div>
 
-      <!-- 右边：消息表格 -->
-      <div>
+      <!-- 右列：表格 -->
+      <div class="col-right">
         <div class="metric-label">Recent messages (A1)</div>
         <div class="table-wrapper">
           <table>
             <thead>
             <tr>
-              <th>t (ms)</th>
-              <th>dist (cm)</th>
-              <th>occ</th>
-              <th>zone</th>
-              <th>src</th>
-              <th>auth</th>
+              <th>T (ms)</th>
+              <th>Dist (cm)</th>
+              <th>Occ</th>
+              <th>Zone</th>
+              <th>Src</th>
+              <th>Auth</th>
             </tr>
             </thead>
             <tbody id="msg-table-body">
-            <!-- JS 填充 -->
+            <!-- 填充 -->
             </tbody>
           </table>
         </div>
@@ -477,7 +503,7 @@
   });
 
   // ========= MQTT Dashboard 逻辑 =========
-  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";   // 和 ESP32 里的 auth_token 保持一致
+  const AUTH_TOKEN = "S1gN4L_N1Nj45_A1";   // <-- 换成你真实的 token
   const TOPIC = "parking/slot/A1";
 
   const connBadge   = document.getElementById("conn-badge");
@@ -580,9 +606,7 @@
     tr.appendChild(cell(src));
     tr.appendChild(cell(authTxt));
 
-    if (!authOk && blockedReason) {
-      tr.style.color = "#f97373";
-    }
+    if (!authOk && blockedReason) tr.style.color = "#f97373";
 
     if (msgTableBody.firstChild) {
       msgTableBody.insertBefore(tr, msgTableBody.firstChild);
